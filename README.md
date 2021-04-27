@@ -1,5 +1,8 @@
 # Simple Piano using tkinter
 
+
+The idea of this repo is to experiment with the available libraries we find in our initial research to gauge how we can best use them in our project repo.
+
 ## creating virtual env (optional):
 
 __Create env__: `python3 -m venv vev`
