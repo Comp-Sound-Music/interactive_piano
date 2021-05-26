@@ -40,7 +40,24 @@ def open_file(filename='sounds/sine.wav'):
         print(e)
     return None
 
-
+#  Frequency of piano notes:
+#  https://en.wikipedia.org/wiki/Piano_key_frequencies
+'''
+One Octave: 
+C4 (middle C) - 261.6 Hz
+C# - 277.18 Hz
+D - 293.665 Hz
+Eb - 311.1 Hz
+E - 329.63 Hz
+F - 349.2 Hz
+F# - 369.99 Hz
+G - 391.99 Hz
+Ab - 415.3 Hz
+A - 440 Hz
+Bb - 466.16 Hz
+B - 493.88 Hz
+C5 - 523.25 Hz
+'''
 
 
 def play_sound(sound):
