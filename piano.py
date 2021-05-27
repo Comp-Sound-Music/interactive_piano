@@ -40,24 +40,6 @@ def open_file(filename='sounds/sine.wav'):
         print(e)
     return None
 
-#  Frequency of piano notes:
-#  https://en.wikipedia.org/wiki/Piano_key_frequencies
-'''
-One Octave: 
-C4 (middle C) - 261.6 Hz
-C# - 277.18 Hz
-D - 293.665 Hz
-Eb - 311.1 Hz
-E - 329.63 Hz
-F - 349.2 Hz
-F# - 369.99 Hz
-G - 391.99 Hz
-Ab - 415.3 Hz
-A - 440 Hz
-Bb - 466.16 Hz
-B - 493.88 Hz
-C5 - 523.25 Hz
-'''
 
 
 def play_sound(sound):
@@ -131,8 +113,20 @@ samp_sz = 16
 samp_rt = 48000
 f = 440
 t = 1
-wave = create_sine(amp,samp_sz,samp_rt,f,t)
-waves = [wave] * 12
+
+#  Frequency of notes:
+#  https://en.wikipedia.org/wiki/Piano_key_frequencies
+
+#  frequencies for one Octave:
+note_frequency = \
+    np.array([261.6, 277.18, 293.665, 311.1, 329.63, 349.2, 369.99, 391.99, 415.3, 440.0, 466.16, 493.88, 523.25])
+#               C4     Db       D       Eb     E       F      Gb      G       Ab     A      Bb      B       C5
+
+#  Sine waves for each note
+notes = np.empty((13, 48000))
+for i in range(13):
+    notes[i] = create_sine(amp, samp_sz, samp_rt, note_frequency[i], t)
+#  waves = [wave] * 12
 
 create_piano(window,waves)
 
