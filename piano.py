@@ -88,7 +88,7 @@ def create_piano(root,sounds,keys=12):
                 width=w,
                 height=h*2)
         b.bind('<ButtonPress>',play_sound(sounds[k])) # row = 0, key = k
-        # b.bind('<ButtonRelease>',release_key)
+        #  b.bind('<ButtonRelease>',release_key)
         b.grid(row=0, column=k, sticky='n')
     # create black keys
     for k in range(keys-1):
@@ -125,9 +125,10 @@ note_frequency = \
 #  Sine waves for each note
 notes = np.empty((13, 48000))
 for i in range(13):
-    notes[i] = create_sine(amp, samp_sz, samp_rt, note_frequency[i], t)
+    notes[i] = (create_sine(amp, samp_sz, samp_rt, note_frequency[i], t))
+#  wave = create_sine(amp, samp_sz, samp_rt, f, t)
 #  waves = [wave] * 12
-
-create_piano(window,waves)
+notes = notes.astype(int)
+create_piano(window, notes)
 
 window.mainloop()
