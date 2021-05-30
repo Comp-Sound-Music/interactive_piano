@@ -14,3 +14,5 @@ __Activate env__: `source venv/bin/activate`
 ## install requirements:
 __run__: `pip3 install -r reqs.txt`
 
+## notes:
+__under arch__: installing tkinter (`tk`) using pip might not be enough. Use `sudo pacman -Syu tk` to install tkinter.

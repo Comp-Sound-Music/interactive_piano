@@ -6,6 +6,7 @@ import simpleaudio as sa # to play sound
 import scipy.io.wavfile as wav # to write/read wavfiles
 import numpy as np
 from pychord import Chord
+from itertools import cycle
 
 
 pressed_key = None
@@ -75,31 +76,43 @@ def release_key(event):
     print('released: {}',event)
     return
 
-def create_piano(root,sounds,keys=12):
+def create_key(root,text,note,fg="black",bg="white",w=5,h=10,bw=5):
     '''
-        this function creates white & black keys (shitty version)
+        creates a key in the piano (tk button) with the given params
     '''
-    w = 5
-    h = 10
-    # create white keys
-    for k in range(keys):
-        b = tk.Button(root,#text = f'key:{k}',
-                borderwidth=5,
+    button = tk.Button(root,
+                text=text,
+                foreground = fg,
+                background = bg,
                 width=w,
-                height=h*2)
-        b.bind('<ButtonPress>',play_sound(sounds[k])) # row = 0, key = k
-        #  b.bind('<ButtonRelease>',release_key)
+                heigh=h,
+                anchor='s',
+                borderwidth=bw)
+    button.bind('<ButtonPress>',play_sound(note)) # row = 0, key = k
+    return button
+def create_piano(root,notes):
+    '''
+        this function creates white & black keys
+    '''
+    # split notes on keys (blacks vs whites)
+    wkeys = list(filter(lambda x: not x[-1].endswith("b"),notes))
+    bkeys = list(filter(lambda x: x[-1].endswith("b"),notes))
+    
+    w = 5
+    h = 8
+    # create white keys
+    for k in range(len(wkeys)):
+        key = wkeys[k][-1]
+        note = wkeys[k][0]
+        b = create_key(root,key,note,w=w,h=h*2,bw=2)
         b.grid(row=0, column=k, sticky='n')
     # create black keys
-    for k in range(keys-1):
-        b = tk.Button(root,#text = f'key:{k}',
-                foreground = "white",
-                background = "black",
-                width=w-1,
-                heigh=h,
-                borderwidth=5)
-        b.bind('<ButtonPress>',play_sound(sounds[k])) # need to change from using external files -- row = 1, key = k
-        # b.bind('<ButtonRelease>',release_key)
+    for k in range(len(bkeys)):
+        note = bkeys[k][0]
+        key = bkeys[k][-1]
+        b = create_key(root,key,note,w=w-2,h=h,fg="white",bg="black")
+        if k >= 2:
+            k += 1
         b.grid(row=0, column=k, columnspan=2, sticky='n')
     return
 
@@ -126,9 +139,13 @@ note_frequency = \
 notes = np.empty((13, 48000))
 for i in range(13):
     notes[i] = (create_sine(amp, samp_sz, samp_rt, note_frequency[i], t))
-#  wave = create_sine(amp, samp_sz, samp_rt, f, t)
-#  waves = [wave] * 12
+
+# need to map the notes correctly to the displayed keys (black kes vs white keys)
+# building a dict using the following order: C4     Db       D       Eb     E       F      Gb      G       Ab     A      Bb      B       C5
+names = ["C4","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B","C5"]
+zipped_notes = list(zip(notes,names))
+
 notes = notes.astype(int)
-create_piano(window, notes)
+create_piano(window, zipped_notes)
 
 window.mainloop()
