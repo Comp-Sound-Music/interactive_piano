@@ -9,7 +9,9 @@ from pychord import Chord
 from itertools import cycle
 
 
-pressed_key = None
+# pressed_key = None
+recording = False
+recorded_keys = [] # maybe stupid
 
 
 def create_sine(ampl,ss,sr,freq,t,ch = 1):
@@ -69,6 +71,19 @@ def play_sound(sound):
 #     pressed_key = key
 #     fun() # invoke fun
 #     return
+
+def record(event):
+    '''
+        This function updates the recording global to indicate a recording state
+    '''
+    global recording
+    if recording == True:
+        print("stopped recroding!")
+        recording = False
+        return
+    print("starting recroding ....")
+    recording = True
+    return
 
 def release_key(event):
     # don't like this even if it was member variable
@@ -143,9 +158,20 @@ for i in range(13):
 # need to map the notes correctly to the displayed keys (black kes vs white keys)
 # building a dict using the following order: C4     Db       D       Eb     E       F      Gb      G       Ab     A      Bb      B       C5
 names = ["C4","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B","C5"]
-zipped_notes = list(zip(notes,names))
 
 notes = notes.astype(int)
+zipped_notes = list(zip(notes,names))
 create_piano(window, zipped_notes)
+
+# add the recording button:
+rec = tk.Button(
+    window,
+    text="record",
+    background="red",
+    foreground="white"
+    )
+rec.bind('<ButtonPress>',record) # row = 0, key = k
+
+rec.grid(row = 3, column=0,sticky='n')
 
 window.mainloop()
