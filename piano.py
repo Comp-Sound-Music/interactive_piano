@@ -45,12 +45,12 @@ def open_file(filename='sounds/sine.wav'):
 
 
 
-def play_sound(sound):
+def play_sound(sound,key_name):
     '''
         purpose: 
             * plays the passed wave sound
         args:
-            * sound: a wave sound
+            * sound: a tuple of (wave sound, name of note)
         returns: 
             * curreid function
     '''
@@ -61,6 +61,10 @@ def play_sound(sound):
             samplerate = len(sound)
             play_obj = sa.play_buffer(sound, 1, 2, samplerate)
             play_obj.wait_done()
+            global recording
+            if recording:
+                recorded_keys.append(key_name) # for now only record name of keys pressed
+            # add key to the recording
             return True
         except Exception as e:
             print(e)
@@ -78,10 +82,12 @@ def record(event):
     '''
     global recording
     if recording == True:
-        print("stopped recroding!")
+        print("stopped recroding!") 
+        print(recorded_keys)
         recording = False
         return
     print("starting recroding ....")
+    # should we clear the recording (in case recording stopped and now we are recording something new)
     recording = True
     return
 
@@ -103,7 +109,7 @@ def create_key(root,text,note,fg="black",bg="white",w=5,h=10,bw=5):
                 heigh=h,
                 anchor='s',
                 borderwidth=bw)
-    button.bind('<ButtonPress>',play_sound(note)) # row = 0, key = k
+    button.bind('<ButtonPress>',play_sound(note,text)) # pass note & text (will be recorded in play_sound)
     return button
 def create_piano(root,notes):
     '''
