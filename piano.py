@@ -79,6 +79,9 @@ def play_sound(sound,key_name):
 #     pressed_key = key
 #     fun() # invoke fun
 #     return
+def midi_to_freq(note):
+    a = 440  # frequency of A4
+    return (a / 32) * (2 ** ((note - 9) / 12))
 
 
 # calculate harmonies from pressed keys
@@ -88,27 +91,28 @@ def create_harmonies(keys):
     root_freqs = []
     third_freqs = []
     fifth_freqs = []
+    # get the harmony frequencies
     for x in keys:
         l = names.index(x)
         root_freqs.append(note_frequency[l])
-        index = keys.index(x)
         key_midi_val = c_notes_midi[x]
         third_rel_step = (key_midi_val - 60) + step_third
         fifth_rel_step = (key_midi_val - 60) + step_fifth
         if third_rel_step < 12:
-            calc = root_freqs[index] * 2**(third_rel_step/12)
+            calc = midi_to_freq(key_midi_val + step_third)
             third_freqs.append(calc)
         else:
             x = third_rel_step - 12
-            calc = root_freqs[index] * 2**(x/12)
+            calc = midi_to_freq(60 + x)
             third_freqs.append(calc)
         if fifth_rel_step < 12:
-            calc = root_freqs[index] * 2 ** (fifth_rel_step / 12)
+            calc = midi_to_freq(key_midi_val + step_fifth)
             fifth_freqs.append(calc)
         else:
             x = fifth_rel_step - 12
-            calc = root_freqs[index] * 2 ** (x / 12)
+            calc = midi_to_freq(60 + x)
             fifth_freqs.append(calc)
+    # create sample waves for harmony notes
     root_waves = np.zeros((len(keys), samp_rt))
     third_waves = np.zeros((len(keys), samp_rt))
     fifth_waves = np.zeros((len(keys), samp_rt))
@@ -116,11 +120,15 @@ def create_harmonies(keys):
         root_waves[x] = create_sine(amp, samp_sz, samp_rt, root_freqs[x], t)
         third_waves[x] = create_sine(amp, samp_sz, samp_rt, third_freqs[x], t)
         fifth_waves[x] = create_sine(amp, samp_sz, samp_rt, fifth_freqs[x], t)
+    root_waves = root_waves.astype(np.int16)
+    third_waves = third_waves.astype(np.int16)
+    fifth_waves = fifth_waves.astype(np.int16)
+    # add harmony waves together and play result
     harmony_waves = np.add(root_waves, third_waves)
     harmony_waves = np.add(harmony_waves, fifth_waves)
     harmony_waves = np.reshape(harmony_waves, (len(keys) * samp_rt))
-    print(harmony_waves.shape)
-    return harmony_waves
+    harmony_waves = harmony_waves.astype(np.int16)
+    play_harmonies(harmony_waves)
 
 
 def record(event):
@@ -132,8 +140,7 @@ def record(event):
         print("stopped recroding!") 
         print(recorded_keys)
         recording = False
-        out_sound = create_harmonies(recorded_keys)
-        play_harmonies(out_sound)
+        create_harmonies(recorded_keys)
         return
     print("starting recroding ....")
     # should we clear the recording (in case recording stopped and now we are recording something new)
