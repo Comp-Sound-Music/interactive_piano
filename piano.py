@@ -5,6 +5,7 @@ import tkinter as tk
 import simpleaudio as sa # to play sound
 import scipy.io.wavfile as wav # to write/read wavfiles
 import numpy as np
+from conversion_table import c_notes_midi
 from pychord import Chord
 from itertools import cycle
 
@@ -19,7 +20,7 @@ def create_sine(ampl,ss,sr,freq,t,ch = 1):
         generates a wave sound (will probably get rid of this) it makes incorrect samples
     '''
     samples = np.linspace(0, t, int(t*sr), endpoint = False) # generate samples 
-    sin =  np.sin(2 * np.pi * freq * samples) # create sine wave
+    sin = np.sin(2 * np.pi * freq * samples) # create sine wave
     wave = ampl * sin * (2**(ss - 1)) / np.max(np.abs(sin))
     wave = wave.astype(np.int16)
     #print(f'{wave} len: {len(wave)}',f'\nmax: {np.max(wave)}  min: {np.min(wave)}')
@@ -44,6 +45,9 @@ def open_file(filename='sounds/sine.wav'):
     return None
 
 
+def play_harmonies(sound):
+    play_obj = sa.play_buffer(sound, 1, 2, samp_rt)
+    play_obj.wait_done()
 
 def play_sound(sound,key_name):
     '''
@@ -76,6 +80,49 @@ def play_sound(sound,key_name):
 #     fun() # invoke fun
 #     return
 
+
+# calculate harmonies from pressed keys
+def create_harmonies(keys):
+    step_third = 4
+    step_fifth = 7
+    root_freqs = []
+    third_freqs = []
+    fifth_freqs = []
+    for x in keys:
+        l = names.index(x)
+        root_freqs.append(note_frequency[l])
+        index = keys.index(x)
+        key_midi_val = c_notes_midi[x]
+        third_rel_step = (key_midi_val - 60) + step_third
+        fifth_rel_step = (key_midi_val - 60) + step_fifth
+        if third_rel_step < 12:
+            calc = root_freqs[index] * 2**(third_rel_step/12)
+            third_freqs.append(calc)
+        else:
+            x = third_rel_step - 12
+            calc = root_freqs[index] * 2**(x/12)
+            third_freqs.append(calc)
+        if fifth_rel_step < 12:
+            calc = root_freqs[index] * 2 ** (fifth_rel_step / 12)
+            fifth_freqs.append(calc)
+        else:
+            x = fifth_rel_step - 12
+            calc = root_freqs[index] * 2 ** (x / 12)
+            fifth_freqs.append(calc)
+    root_waves = np.zeros((len(keys), samp_rt))
+    third_waves = np.zeros((len(keys), samp_rt))
+    fifth_waves = np.zeros((len(keys), samp_rt))
+    for x in range(len(keys)):
+        root_waves[x] = create_sine(amp, samp_sz, samp_rt, root_freqs[x], t)
+        third_waves[x] = create_sine(amp, samp_sz, samp_rt, third_freqs[x], t)
+        fifth_waves[x] = create_sine(amp, samp_sz, samp_rt, fifth_freqs[x], t)
+    harmony_waves = np.add(root_waves, third_waves)
+    harmony_waves = np.add(harmony_waves, fifth_waves)
+    harmony_waves = np.reshape(harmony_waves, (len(keys) * samp_rt))
+    print(harmony_waves.shape)
+    return harmony_waves
+
+
 def record(event):
     '''
         This function updates the recording global to indicate a recording state
@@ -85,6 +132,8 @@ def record(event):
         print("stopped recroding!") 
         print(recorded_keys)
         recording = False
+        out_sound = create_harmonies(recorded_keys)
+        play_harmonies(out_sound)
         return
     print("starting recroding ....")
     # should we clear the recording (in case recording stopped and now we are recording something new)
