@@ -137,21 +137,22 @@ def record(event):
     '''
     global recording
     if recording == True:
-        print("stopped recroding!") 
-        print(recorded_keys)
+        print("stopped recording!")
         recording = False
         create_harmonies(recorded_keys)
         return
-    print("starting recroding ....")
-    # should we clear the recording (in case recording stopped and now we are recording something new)
+    print("starting recording ....")
+    recorded_keys.clear()
     recording = True
     return
+
 
 def release_key(event):
     # don't like this even if it was member variable
     # pressed_key = None
     print('released: {}',event)
     return
+
 
 def create_key(root,text,note,fg="black",bg="white",w=5,h=10,bw=5):
     '''
@@ -232,8 +233,8 @@ rec = tk.Button(
     background="red",
     foreground="white"
     )
-rec.bind('<ButtonPress>',record) # row = 0, key = k
+rec.bind('<ButtonPress>', record)  # row = 0, key = k
 
-rec.grid(row = 3, column=0,sticky='n')
+rec.grid(row=3, column=0, sticky='n')
 
 window.mainloop()
