@@ -1,6 +1,3 @@
-'''
-    This is just a script to play around with tkinter and try creating trashy versions of our project
-'''
 import tkinter as tk
 import simpleaudio as sa # to play sound
 import scipy.io.wavfile as wav # to write/read wavfiles
