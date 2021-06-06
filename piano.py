@@ -5,7 +5,7 @@ import tkinter as tk
 import simpleaudio as sa # to play sound
 import scipy.io.wavfile as wav # to write/read wavfiles
 import numpy as np
-from conversion_table import c_notes_midi
+from conversion_table import name_to_key
 from pychord import Chord
 from itertools import cycle
 
@@ -95,7 +95,7 @@ def create_harmonies(keys):
     for x in keys:
         l = names.index(x)
         root_freqs.append(note_frequency[l])
-        key_midi_val = c_notes_midi[x]
+        key_midi_val = name_to_key[x]
         third_rel_step = (key_midi_val - 60) + step_third
         fifth_rel_step = (key_midi_val - 60) + step_fifth
         if third_rel_step < 12:
@@ -197,7 +197,7 @@ def create_piano(root,notes):
 
 
 window = tk.Tk()
-window.title("very trashy interactive keyboard")
+window.title("Play something!")
 
 amp = 0.25
 samp_sz = 16
@@ -210,7 +210,8 @@ t = 1
 
 #  frequencies for one Octave:
 note_frequency = \
-    np.array([261.6, 277.18, 293.665, 311.1, 329.63, 349.2, 369.99, 391.99, 415.3, 440.0, 466.16, 493.88, 523.25])
+    np.array([523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77, 1046.50])
+    #np.array([261.6, 277.18, 293.665, 311.1, 329.63, 349.2, 369.99, 391.99, 415.3, 440.0, 466.16, 493.88, 523.25])
 #               C4     Db       D       Eb     E       F      Gb      G       Ab     A      Bb      B       C5
 
 #  Sine waves for each note
@@ -220,7 +221,7 @@ for i in range(13):
 
 # need to map the notes correctly to the displayed keys (black kes vs white keys)
 # building a dict using the following order: C4     Db       D       Eb     E       F      Gb      G       Ab     A      Bb      B       C5
-names = ["C4","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B","C5"]
+names = ["C5","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B","C6"]
 
 notes = notes.astype(int)
 zipped_notes = list(zip(notes,names))
