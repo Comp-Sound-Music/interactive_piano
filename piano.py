@@ -6,63 +6,72 @@ from conversion_table import name_to_key
 from itertools import cycle
 
 
-# pressed_key = None
+# very simple way of tracking recording 
+# know if you are recording what is the order of things
 recording = False
-recorded_keys = [] # maybe stupid
-
+recorded_keys = [] 
+# params of wave sounds created
+amp = 0.25
+samp_sz = 16
+samp_rt = 48000
+f = 440
+t = 1
+# need to map the notes correctly to the displayed keys (black kes vs white keys)
+# build a dict with the note names
+names = ["C5", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C6"]
+#  frequencies for one Octave:
+note_frequency = \
+    np.array([523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77, 1046.50])
+#               C5     Db       D       Eb      E       F      Gb       G       Ab      A       Bb      B       C6
 
 # generates sine samples
 def create_sine(ampl, ss, sr, freq, t, ch=1):
+    '''
+        purpose:
+            * generates sine sampes with passed params.
+        args:
+            * ampl: desired amplitude.
+            * ss: desired sample size.
+            * sr: desired sample rate.
+            * freq: desired frequency.
+            * t: desired duration.
+            * ch: desired number of channels ( one by default).
+        returns:
+            * resulting sound wave.
+    '''
     samples = np.linspace(0, t, int(t*sr), endpoint=False)  # generate samples
     sin = np.sin(2 * np.pi * freq * samples) # create sine wave
     wave = ampl * sin * (2**(ss - 1)) / np.max(np.abs(sin))
     wave = wave.astype(np.int16)
-    #print(f'{wave} len: {len(wave)}',f'\nmax: {np.max(wave)}  min: {np.min(wave)}')
     return wave
 
 
-'''
-        purpose: 
-            * This function opens the file passed in as a parameter and plays it
-        args:
-            * filename: name of file to be open and played
-        returns: 
-            * Success: (samplerate,data)  ==> sample rate is just len(dara)
-            * Failure: None
-'''
-'''
-def open_file(filename='sounds/sine.wav'):
-
-    try:
-        print(f'reading {filename}...')
-        samplerate,data = wav.read(filename=filename) # read file name
-        return (samplerate,data) 
-    except Exception as e:
-        print(e)
-    return None
-'''
-
-
-# plays the resulting harmony waveform
 def play_harmonies(sound):
+    '''
+        purpose:
+            * plays the passed sound. Used to play the resulting harmonies after recording.
+        args:
+            * sound: target waveform to play. 
+        returns:
+            * None
+    '''
     play_obj = sa.play_buffer(sound, 1, 2, samp_rt)
     play_obj.wait_done()
+    return 
 
 
 def play_sound(sound, key_name):
     '''
-            purpose:
-                * plays the passed wave sound
-            args:
-                * sound: a tuple of (wave sound, name of note)
-            returns:
-                * curreid function
+        purpose:
+            * plays the passed wave sound
+        args:
+            * sound: a tuple of (wave sound, name of note)
+        returns:
+            * curreid function to play captured sound whenever invoked
     '''
     def call_back(e):
         try:
-            samplerate = len(sound)
-            play_obj = sa.play_buffer(sound, 1, 2, samplerate)
-            play_obj.wait_done()
+            play_obj = sa.play_buffer(sound, 1, 2, samp_rt)
             global recording
             if recording:
                 recorded_keys.append(key_name) # add pressed key to list
@@ -73,22 +82,29 @@ def play_sound(sound, key_name):
     return call_back
 
 
-'''
-def press_key(key,fun):
-    pressed_key = key
-    fun() # invoke fun
-    return
-'''
 
-
-# get frequency from MIDI value
 def midi_to_freq(note):
+    '''
+        purpose:
+            * calculates the frequency from MIDI value.
+        args:
+            * note: MIDI value to get frequency from.
+        returns:
+            * frequency.
+    '''
     a = 440  # frequency of A4
     return (a / 32) * (2 ** ((note - 9) / 12))
 
 
-# calculate harmonies from pressed keys
 def create_harmonies(keys):
+    '''
+        purpose:
+            * calculates harmonies from passed keys.
+        args:
+            * keys: list of recorded pressed keys from piano
+        returns:
+            * resulting harmony.
+    '''
     step_third = 4
     step_fifth = 7
     root_freqs = []
@@ -131,33 +147,51 @@ def create_harmonies(keys):
     harmony_waves = np.add(harmony_waves, fifth_waves)
     harmony_waves = np.reshape(harmony_waves, (len(keys) * samp_rt))
     harmony_waves = harmony_waves.astype(np.int16)
-    play_harmonies(harmony_waves)
+    return harmony_waves
 
 
 #  updates the recording global to indicate a recording state
 def record(event):
+    '''
+        purpose:
+            * callback for record button. 
+            If the record state is true, it records pressed keys from piano in a new record (cleared list).
+            Otherwise, it stops recording/tracking keys and invokes create harmonies. 
+        args:
+            * event: tkinter event
+        returns:
+            * None
+    '''
     global recording
     if recording == True:
         print("stopped recording!")
         recording = False
-        create_harmonies(recorded_keys)
+        res = create_harmonies(recorded_keys)
+        play_harmonies(res)
         return
     print("starting recording ....")
     recorded_keys.clear()
     recording = True
     return
 
-'''
-def release_key(event):
-    # don't like this even if it was member variable
-    # pressed_key = None
-    print('released: {}',event)
-    return
-'''
-
 
 #  creates individual keys on the piano GUI
 def create_key(root, text, note, fg="black", bg="white", w=5, h=10, bw=5):
+    '''
+        purpose:
+            * creates an individual piano key UI.
+        args:
+            * keys: list of recorded pressed keys from piano
+            * text: tet to add the button.
+            * note: sound to pass to call back function
+            * fg: foreground color (black default)
+            * bg: background color (white default)
+            * w: width of key/button.
+            * h: height of key/button.
+            * bw: borderwidth for key/button.
+        returns:
+            * tk button.
+    '''
     button = tk.Button(root,
                 text=text,
                 foreground = fg,
@@ -170,8 +204,17 @@ def create_key(root, text, note, fg="black", bg="white", w=5, h=10, bw=5):
     return button
 
 
-#  creates the piano GUI
 def create_piano(root, notes):
+    '''
+        purpose:
+            * creates piano keys interface (buttons).
+        args:
+            * root: root window to add keys to.
+            * notes: list of wave sounds.
+        returns:
+            * None (adds everything to the passed root)
+    '''
+    #  creates the piano GUI
     # split notes on keys (blacks vs whites)
     wkeys = list(filter(lambda x: not x[-1].endswith("b"), notes))
     bkeys = list(filter(lambda x: x[-1].endswith("b"), notes))
@@ -195,41 +238,33 @@ def create_piano(root, notes):
     return
 
 
-window = tk.Tk()
-window.title("Play something!")
+def main():
+    window = tk.Tk()
+    window.title("Interactive Piano")
 
-amp = 0.25
-samp_sz = 16
-samp_rt = 48000
-f = 440
-t = 1
 
-#  frequencies for one Octave:
-note_frequency = \
-    np.array([523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77, 1046.50])
-#               C5     Db       D       Eb      E       F      Gb       G       Ab      A       Bb      B       C6
+    #  Sine waves for each note
+    notes = np.empty((13, 48000))
+    for i in range(13):
+        notes[i] = (create_sine(amp, samp_sz, samp_rt, note_frequency[i], t))
 
-#  Sine waves for each note
-notes = np.empty((13, 48000))
-for i in range(13):
-    notes[i] = (create_sine(amp, samp_sz, samp_rt, note_frequency[i], t))
+    
+    notes = notes.astype(int)
+    zipped_notes = list(zip(notes,names))
+    create_piano(window, zipped_notes)
 
-# need to map the notes correctly to the displayed keys (black kes vs white keys)
-# build a dict with the note names
-names = ["C5", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C6"]
-notes = notes.astype(int)
-zipped_notes = list(zip(notes,names))
-create_piano(window, zipped_notes)
+    # add the recording button:
+    rec = tk.Button(
+        window,
+        text="record",
+        background="red",
+        foreground="white"
+        )
+    rec.bind('<ButtonPress>', record)  # row = 0, key = k
 
-# add the recording button:
-rec = tk.Button(
-    window,
-    text="record",
-    background="red",
-    foreground="white"
-    )
-rec.bind('<ButtonPress>', record)  # row = 0, key = k
+    rec.grid(row=3, column=0, sticky='n')
 
-rec.grid(row=3, column=0, sticky='n')
-
-window.mainloop()
+    window.mainloop()
+if __name__ == "__main__":
+    main()
+    exit()
