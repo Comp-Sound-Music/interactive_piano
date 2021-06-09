@@ -4,6 +4,7 @@ import scipy.io.wavfile as wav # to write/read wavfiles
 import numpy as np
 from conversion_table import name_to_key
 from itertools import cycle
+from time import sleep
 
 
 # very simple way of tracking recording 
@@ -56,7 +57,6 @@ def play_harmonies(sound):
             * None
     '''
     play_obj = sa.play_buffer(sound, 1, 2, samp_rt)
-    play_obj.wait_done()
     return 
 
 
@@ -71,7 +71,8 @@ def play_sound(sound, key_name):
     '''
     def call_back(e):
         try:
-            play_obj = sa.play_buffer(sound, 1, 2, samp_rt)
+            sound = create_harmonies([key_name])
+            play_harmonies(sound)
             global recording
             if recording:
                 recorded_keys.append(key_name) # add pressed key to list
@@ -166,8 +167,9 @@ def record(event):
     if recording == True:
         print("stopped recording!")
         recording = False
-        res = create_harmonies(recorded_keys)
-        play_harmonies(res)
+        sounds = create_harmonies(recorded_keys)
+        sleep(t)
+        play_harmonies(sounds)
         return
     print("starting recording ....")
     recorded_keys.clear()
