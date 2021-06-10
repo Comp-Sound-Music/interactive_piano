@@ -6,7 +6,7 @@ from conversion_table import name_to_key as table
 
 class CreateHarmonies(unittest.TestCase):
     def test_create_harmonies(self):
-        # reference: https://cs510sound-spring2021.zulip.cs.pdx.edu/#narrow/stream/7-general/topic/HW.203.3A.20Chord.3F/near/2239
+        # reference (with permission): https://cs510sound-spring2021.zulip.cs.pdx.edu/#narrow/stream/7-general/topic/HW.203.3A.20Chord.3F/near/2239
         samp_rt = 48000
         eps = 2.
         act_freqs = [ 
