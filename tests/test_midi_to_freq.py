@@ -23,12 +23,10 @@ class MidiToFreq(unittest.TestCase):
             1046.5
         ]
         for i,k in enumerate(name_to_key.keys()):
-            # print(f"{k} {v}")
             v = name_to_key[k]
             print(f"Test {k}")
             ret = midi_to_freq(v)
             self.assertEqual(freqs[i],round(ret,2))
-        self.assertEqual(1,1)
-
+        return
 if __name__=="__main__":
     unittest.main()
