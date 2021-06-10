@@ -5,7 +5,8 @@ Our idea for the project was to build an interactive piano interface that allows
 We built the piano GUI using **tkinter** and mapped each of the keys to a specific note between C5 and C6. We used the **simpleaudio** library to play the audio directly from the waveform samples to avoid having to write and read wav files.  
 When the user presses the record button, the program records each key press and stores the note names in a list. When the recording is finished, a function calculates the relative frequencies of the third and fifth
 of each note pressed and creates waveforms for each one. Similar to the assignment in homework 3, the waveforms are then added together to create a chord and the user's melody is played back with the added harmonies.  
-To verify our output we wrote test scripts to validate that the program produces accurate frequency calculations, correct waveforms, and correct note selection (see tests section below).
+To verify our output we wrote test scripts to validate that the program produces accurate frequency calculations, correct waveforms, and correct note selection (see tests section below).  
+If we had more time to work on the project, we would have liked to implement support for overlapping notes and different note timing, but unfortunately we weren't able to get a working version of that before the due date. 
 
 
 
